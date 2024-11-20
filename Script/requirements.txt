@@ -1,0 +1,13 @@
+﻿mysql.connector
+mysql
+SpeechRecognition
+nltk
+vaderSentiment
+google-generativeai
+soundfile
+pydub
+django
+mysqlclient
+djangorestframework
+djangorestframework-simplejwt
+wordcloud

@@ -1,0 +1,24 @@
+<?php
+
+$token_url = 'http://127.0.0.1:8001/api/token/';
+$data = json_encode(['username' => 'belloni', 'password' => '0220']);
+
+$ch = curl_init($token_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Host: 127.0.0.1:8001'
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$response_data = json_decode($response, true);
+
+if (isset($response_data['token'])) {
+    echo "Token: " . $response_data['token'];
+} else {
+    echo "Erro ao obter o token: " . $response; // Exibe a resposta completa da API em caso de erro
+}

@@ -1,0 +1,529 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    font-size: 200%;
+    font-weight: bold;
+}
+
+h3 {
+    font-size: 150%;
+    font-weight: bold;
+}
+
+/* Estilos para a tela de login */
+
+.logotipe {
+    width: 20rem;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.login-box {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.login-box h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.login-box button:hover {
+    background-color: #555;
+}
+
+/* Estilos da tela de form */
+
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    background-color: #f0f0f0;
+}
+
+.form-box {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.form-box h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.form-box input {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-box textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-box button:hover {
+    background-color: #555;
+}
+
+/* Estilos para a tela de dashboard */
+
+.logotipe-menu {
+    width: 12rem;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin-bottom: 1rem;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.sidebar button:hover {
+    background-color: #555;
+}
+
+.sidebar .login {
+    text-align: center;
+}
+
+.sidebar .login button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar .login button:hover {
+    background-color: #555;
+}
+
+.sidebar .login p {
+    color: #fff;
+}
+
+.navbar{
+    width: 100%;
+    padding: 0%;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: #333;
+    padding: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    color: #fefcfc;
+}
+
+.content {
+    flex: 1;
+    background-color: #f9f9f9;
+    margin: 1rem;
+}
+
+.footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+/* Estilos para a tabela */
+.table-container {
+    max-height: 27rem;
+    overflow-y: auto;
+    padding: 0;
+    margin-bottom: 1px;
+}
+
+.table {
+    width: 50%;
+    margin-bottom: 0;
+}
+
+.table th,
+.table td {
+    font-size: 80%;
+    text-align: left;
+    border-bottom: 1px solid #ffffffd8;
+}
+
+.table th {
+    background-color: #aa00f8;
+}
+
+/* Estilos do gráfico pizza */
+
+.canva {
+    width: 80%;
+    height: 10rem;
+}
+
+/* Estilos para controle de audio na tabela */
+audio {
+    width: 10rem;
+    height: 2rem;
+}
+p {
+    padding: 0.2rem;
+    line-height: 1rem;
+    margin-bottom: 0;
+}
+
+/* Media Queries para responsividade */
+
+/* Dispositivos pequenos (smartphones) */
+@media (max-width: 600px) {
+
+    h1, h2, h3{
+        font-size: larger;
+    }
+    .logotipe {
+        width: 15rem;
+    }
+
+    .login-box {
+        padding: 1rem;
+    }
+
+    .form-box {
+        padding: 1rem;
+    }
+
+    .logotipe-menu {
+        width: 8rem;
+    }
+
+    .sidebar {
+        display: none; /* Oculta a sidebar em telas pequenas */
+        position: fixed;
+        width: 100%;
+        height: auto;
+        top: 60px;
+        left: 0;
+    }
+    .navbar{
+        display: flex; /* Oculta a sidebar em telas pequenas */
+
+    }
+
+    .sidebar.show {
+        display: block; /* Mostra a sidebar quando a classe "show" é adicionada */
+    }
+
+    .table {
+        width: 100%;
+    }
+
+    .canva {
+        width: 100%;
+    }
+
+    audio {
+        width: 100%;
+    }
+
+    .dashboard-container {
+        flex-direction: column;
+    }
+}
+
+
+/* Dispositivos médios (tablets1) */
+@media (min-width: 601px) and (max-width: 890px) {
+    .logotipe {
+        width: 18rem;
+    }
+
+    .logotipe-menu {
+        width: 10rem;
+    }
+
+    .sidebar {
+        width: 220px;
+        display: none; /* Oculta a sidebar em telas grandes */
+
+    }
+    .navbar{
+        display: flex; /* Oculta a navbar em telas pequenas */
+
+
+    }
+
+    .table {
+        width: 75%;
+    }
+
+    .canva {
+        width: 90%;
+    }
+
+    audio {
+        width: 80%;
+    }
+    
+}
+
+/* Dispositivos médios (tablets2) */
+@media (min-width: 891px) and (max-width: 1024px) {
+    
+    .logotipe {
+        width: 18rem;
+    }
+
+    .logotipe-menu {
+        width: 10rem;
+    }
+
+    .sidebar {
+        width: 220px;
+    }
+    .navbar{
+        display: none; /* Oculta a navbar em telas grandes */
+
+    }
+
+    .table {
+        width: 75%;
+    }
+
+    .canva {
+        width: 90%;
+    }
+
+    audio {
+        width: 80%;
+    }
+
+
+}
+
+/* Dispositivos grandes (desktops) */
+@media (min-width: 1025px) and (max-width: 1500px) {
+    col {
+        max-height: 10rem;
+    }
+    .main-col{
+        height: 90%;
+        padding-left: 3rem;
+    }
+
+    .logotipe {
+        width: 20rem;
+    }
+
+    .logotipe-menu {
+        width: 12rem;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 41.6rem;
+    }
+
+    .table {
+        width: 50%;
+    }
+
+    .canva {
+        width: 80%;
+    }
+
+    audio {
+        width: 10rem;
+    }
+
+    .navbar{
+        display: none; /* Oculta a navbar em telas grandes */
+
+    }
+
+    h1{
+        font-size: 1.5rem;
+    }
+
+    h3{
+        font-size: 1.1rem;
+    }
+
+    .footer{
+        margin-top: 5rem;
+    }
+
+}
+
+/* Dispositivos muito grandes (tv) */
+@media (min-width: 1501px) {
+
+    .row-total{
+        margin-right:-2%;
+        padding:0px;
+    }
+
+    .dashboard-container{
+        
+    }
+
+    .main-col{
+        height: 90%;
+        padding-left: 0rem;
+        margin-left: -2.5rem;
+    }
+
+    .sidebar-col{
+        height: 92%;
+        padding-right: 0rem;
+    }
+
+    .header{
+        margin-left:-0.1%;
+        width: 100%
+    }
+
+    .logotipe {
+        width: 20rem;
+    }
+
+    .logotipe-menu {
+        width: 12rem;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100%;
+        position:relative; 
+    }
+
+    .table {
+        width: 50%;
+    }
+
+    .canva {
+        width: 80%;
+    }
+
+    audio {
+        width: 10rem;
+    }
+
+    .navbar{
+        display: none; /* Oculta a navbar em telas grandes */
+
+    }
+
+    h1{
+        font-size: 1.5rem;
+    }
+
+    h3{
+        font-size: 1.1rem;
+    }
+
+    .footer{
+display:flexbox    }
+
+    .navbar{
+        display: none; /* Oculta a navbar em telas grandes */
+
+    }
+
+    .progress-bar-container{
+        line-height: 0rem;
+        flex: 0rem;
+        margin: 0%;
+    }
+}
