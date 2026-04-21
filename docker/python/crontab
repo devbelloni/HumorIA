@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+BASH_ENV=/etc/environment
+
+# Processa arquivos de áudio novos a cada hora
+0 * * * * root . /etc/environment ; cd /app && /usr/local/bin/python3 main.py >> /var/log/humorai_worker.log 2>&1

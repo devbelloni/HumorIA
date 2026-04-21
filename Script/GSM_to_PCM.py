@@ -19,7 +19,6 @@ def obter_informacoes_arquivo(arquivo):
 
 
 
-
 if __name__ == "__main__":
     if len(sys.argv) > 1:  # Verifica se há argumentos após o nome do script
         id_empresa = sys.argv[1]  # O primeiro argumento é o nome a ser usado

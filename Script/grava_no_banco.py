@@ -18,11 +18,11 @@ class grava_no_banco:
                 cursor = conn.cursor()
 
                 # Query
-                query = f"INSERT INTO {self.tabela} ({', '.join(self.colunas)}) VALUES {self.valores}"
-                print("Query:", query)
+                placeholders = ', '.join(['%s'] * len(self.colunas))
+                query = f"INSERT INTO {self.tabela} ({', '.join(self.colunas)}) VALUES ({placeholders})"
 
-                # Executa a query
-                cursor.execute(query)
+                # Executa a query com parâmetros para evitar SQL Injection
+                cursor.execute(query, self.valores)
 
                 # Commit da transação
                 conn.commit()

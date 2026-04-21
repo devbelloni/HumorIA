@@ -249,6 +249,8 @@ if (isset($_POST['data_inicio']) && isset($_POST['data_fim'])) {
                                         // var_dump ($result);
                                     ?>
 
+
+
                                     <form action="dashboard.php" method="post">
                                         <label for="data_inicio">Data de Início</label>
                                         <input required type="date" name="data_inicio" id="data_inicio" class="form-control"
@@ -289,8 +291,8 @@ if (isset($_POST['data_inicio']) && isset($_POST['data_fim'])) {
                                             <th scope="col">Data</th>
                                             <th scope="col">Ramal</th>
                                             <th scope="col">File</th>
-                                            <th scope="col">Emoção Vader</th>
-                                            <th scope="col">Emoção Gemini</th>
+                                            <th scope="col">Emoção Vader AI</th>
+                                            <th scope="col">Emoção Infinity AI</th>
                                             <th scope="col">Ouvir</th>
                                     </tr>
                                         </thead>
@@ -308,6 +310,23 @@ if (isset($_POST['data_inicio']) && isset($_POST['data_fim'])) {
                                         <?php
                                 $emotionus = [];
                                 foreach ($result as $file) {
+
+                                    // $filename =  '[Garcia, Robson]_8863-46420792_20250611143236(4682).wav';
+                                    // $encoded_filename = rawurlencode($filename);
+                                    // $src = '/recordings (3)/' . $_SESSION["empresa_id"] . '/' . $file["path"] . '/' . $encoded_filename;
+                                    // echo '<audio src="' . htmlspecialchars($src) . '" controls></audio>';
+
+                                    // echo '<td><audio src="./../recordings (3)/1/8873/[Isadora Dias]_8873-49688869_20250312202241(4213).wav" controls></audio>';    
+                                    
+                                    // src="./../recordings (3)/1/8873/[Isadora Dias]_8873-49687780_20240429112839(12298).wav" controls>
+                                    // src="./../recordings (3)/1/8880/[França, Ricardo]_8880-00551140402377_20250128185247(2114).wav" controls>
+
+
+
+                                    
+
+                                    // echo '<audio src="./var/www/humoria/recordings (3)/1/8863/[Garcia, Robson]_8863-46420792_20250611143236(4682).wav" controls></audio>';
+                                    // echo ' src="' . $sound_file . '" controls>';
                                     echo '<tr>';
                                     echo '<th scope="row">' . $file["id"] . '</th>';
 
@@ -328,7 +347,12 @@ if (isset($_POST['data_inicio']) && isset($_POST['data_fim'])) {
                                     echo '<td>' . $file["emotion_vader"] . '</td>';
                                     echo '<td>' . $file["emotion_gemini"] . '</td>';
 
-                                    echo '<td><audio src="./../recordings (3)/' . $_SESSION["empresa_id"] . '/' . $file["path"] . '/' . $file["filename"] . '" controls></audio></td>';
+                                    // echo '<td><audio src="' . $sound_file . '" controls></audio></td>';
+                                    $filename =  $file["filename"];
+                                    $encoded_filename = rawurlencode($filename);
+                                    $src = '/recordings (3)' .'/' . $_SESSION["empresa_id"] . '/' . $file["path"] . '/' . $encoded_filename;
+                                    echo '<td><audio src="' . htmlspecialchars($src) . '" controls></audio></td>';
+
                                     echo '</tr>';
 
                                     array_push($emotionus, $file["emotion_vader"]);
@@ -342,7 +366,7 @@ if (isset($_POST['data_inicio']) && isset($_POST['data_fim'])) {
                                 );
                                 $jsonArray = json_encode(array_values($dados));
                                 ?>
-                                </tbody>                                    </tbody>
+                                </tbody>
                                     </table>
                                 </div>
  

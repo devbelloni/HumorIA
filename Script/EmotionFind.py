@@ -1,6 +1,4 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import os
-import google.generativeai as genai
 
 
 class EmotionFind():

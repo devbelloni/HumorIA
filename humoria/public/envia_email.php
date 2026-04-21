@@ -34,7 +34,7 @@ $mail->SMTPAuth = true;
 $mail->Username = 'prof.belloni@gmail.com';
 
 // Password to use for SMTP authentication
-$mail->Password = 'hbpxppywbzvwlals';
+$mail->Password = 'csrhiyuxinsoklgk';
 
 // Set who the message is to be sent from
 $mail->setFrom('prof.belloni@gmail.com', 'Contato-Humor');

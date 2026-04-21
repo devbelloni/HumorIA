@@ -74,7 +74,6 @@ class CreateController {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->dbConnector->prepare($sql);
-        echo "ok";
 
         if ($stmt === false) {
             die('Prepare failed: ' . htmlspecialchars($this->dbConnector->error));
@@ -91,16 +90,16 @@ class CreateController {
             $empresa['cidade'],
             $empresa['estado'],
             $empresa['pais'],
-            $empresa['cep'],
+            $empresa['cep']
         );
 
         // Tente executar a declaração
-        try {
-            $stmt->execute();
-            echo "<script>alert('Empresa registrada com sucesso.'); window.location.href = 'cadastro_empresa.php';</script>";
-        } catch (Exception $e) {
-            echo "User registration failed: " . $e->getMessage();
-        }
+        // try {
+        //     $stmt->execute();
+        //     echo "<script>alert('Empresa registrada com sucesso.'); window.location.href = 'cadastro_empresa.php';</script>";
+        // } catch (Exception $e) {
+        //     echo "User registration failed: " . $e->getMessage();
+        // }
 
          // Tenta enviar o id da empresa para criar o diretório de arquivos de audio - inserido em 20/11/24
         try {

@@ -1,0 +1,23 @@
+# Variáveis de ambiente — NUNCA commitar
+.env
+
+# Dependências Python
+Script/venv/
+Script/__pycache__/
+Script/*.pyc
+Script/*.pyo
+
+# Dependências PHP
+humoria/vendor/
+
+# Logs
+*.log
+/tmp/
+
+# Uploads e gravações (binários grandes)
+"humoria/recordings (3)/"
+humoria/recordings_gsm/
+
+# Arquivos de sistema Windows
+desktop.ini
+Thumbs.db

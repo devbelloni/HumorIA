@@ -1,38 +1,30 @@
-
 <?php  
-
 session_start();
 
-if (isset($_SESSION['empresa_id'])) {
-    $display = "active";
-} else {
-    $display = "deactive";
+// 1. Trava de Segurança Principal
+if (!isset($_SESSION['empresa_id']) || !isset($_SESSION['user_email'])) {
     header('location:./index.php');
-
+    exit; // Sempre use exit após header redirect
 }
+
+$display = "active";
 
 require("./../dbm/DatabaseConnector.php");
 require("./../controllers/BDController.php");
 
-
-$horaAtual = time(); // time() retorna a hora atual em segundos desde a Era Unix (1 de Janeiro de 1970 00:00:00 GMT)
-if (!isset($_SESSION['user_email'])==True) {
-  $tempoDecorrido = 0;
-  unset($_SESSION['user_email']);
-  session_write_close();
-
-}else{
-  if (isset($_SESSION)==True) {
-    $tempoDecorrido =  $horaAtual-$_SESSION['ultima_atividade'];
-    if ($tempoDecorrido > 600) { 
-      $tempoDecorrido = 0;
-      header('location:./logout.php');
-
-      }    
-  }
+// 2. Lógica de Timeout (Sessão expirada por inatividade)
+$horaAtual = time(); 
+if (isset($_SESSION['ultima_atividade'])) {
+    $tempoDecorrido = $horaAtual - $_SESSION['ultima_atividade'];
+    if ($tempoDecorrido > 600) { // 10 minutos
+        header('location:./logout.php');
+        exit;
+    }
 }
+// Atualiza a última atividade para renovar o fôlego do usuário
+$_SESSION['ultima_atividade'] = $horaAtual;
 
-// Exemplo de inicialização do conector de banco de dados (PDO)
+// 3. Inicialização do Banco (Respeitando o Docker/ENV que configuramos)
 include_once("./../dbm/DBConfig.php");
 
 $dsn = DBConfig::getDSN();
@@ -45,6 +37,13 @@ $dbname = DBConfig::getBdName();
 $dbConnector = new DatabaseConnector($dsn, $username, $password, $options);
 $usuarios = new BDController($dbConnector, "users", "id_empresa", $_SESSION['empresa_id']);
 $result = $usuarios->getter();
+
+
+
+$prazo_usuario = new BDController($dbConnector, "users", "id", $_SESSION['user_id']);
+$prazo = $prazo_usuario->getter();
+
+
 
     // // Exemplo de uso do método setter
     // // $newData = [
@@ -271,7 +270,46 @@ if(isset($_SESSION['empresa_id'])){
                             </div>
                         </div>
                         
-                            
+                                                    <!-- Aqui vem o forms que acessa a lógica. Ele deve receber a leitura do banco de quanto está configurado o prazo. -->
+                        <div class="row">
+    <div class="col-xl-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-chart-area me-1"></i>
+                Relatório Periódico
+            </div>
+            <div class="card-body text-center">
+
+
+
+    <form action="./../controllers/relatorio.php" method="post">
+    <?php 
+    // var_dump($prazo[0]['prazo']);
+    //     echo ($prazo[0]['prazo'] );
+    ?>
+    <label for="prazo">Frequência de Execução</label>
+
+    <select id="prazo" name="prazo" class="form-control mb-2">
+        <option value="diario" <?php echo ($prazo[0]['prazo'] == "diario") ? "selected" : ""; ?>>Diariamente</option>
+        <option value="3dias" <?php echo ($prazo[0]['prazo'] == "3dias") ? "selected" : ""; ?>>A cada 3 dias</option>
+        <option value="segunda" <?php echo ($prazo[0]['prazo'] == "segunda") ? "selected" : ""; ?>>Toda Segunda-feira</option>
+        <option value="quarta" <?php echo ($prazo[0]['prazo'] == "quarta") ? "selected" : ""; ?>>Toda Quarta-feira</option>
+        <option value="sexta" <?php echo ($prazo[0]['prazo'] == "sexta") ? "selected" : ""; ?>>Toda Sexta-feira</option>
+        <option value="sabado" <?php echo ($prazo[0]['prazo'] == "sabado") ? "selected" : ""; ?>>Todo Sábado</option>
+        <option value="15dias" <?php echo ($prazo[0]['prazo'] == "15dias") ? "selected" : ""; ?>>A cada 15 dias</option>
+        <option value="mensal" <?php echo ($prazo[0]['prazo'] == "mensal") ? "selected" : ""; ?>>Mensalmente</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Atualizar Sessão</button>
+</form>
+
+
+
+
+</div>
+        </div>                      
+    </div>                      
+</div>
 
               
                     </div>

@@ -22,6 +22,6 @@ def decode_filenames(directory):
                             os.rename(old_path, new_path)
                             print(f'Renamed {filename3} to {decoded_filename}')
 
-directory = "var/www/humoria/recordings (3)"
+directory = "/var/www/humoria/recordings (3)"
 
 decode_filenames(directory)

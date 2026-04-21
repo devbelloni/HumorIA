@@ -36,17 +36,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email_recupera'])) {
 
 
         $email_recupera = $_POST['email_recupera'];
-    
 
-        // test
-        // echo "$email_recupera = " . $email_recupera . "<br>";
-
-
-        // BDController($dbConnector, $tableName, $column, $value) {
-        // $BDController = new BDController($conn, 'users', 'email', $email_recupera);
-        $sql = "SELECT * FROM users WHERE email = '$email_recupera'";
-        $sql_query = $conn->query($sql) or die("Falha ao se conectar". $this->conn->error);
-      
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->bind_param('s', $email_recupera);
+        $stmt->execute();
+        $sql_query = $stmt->get_result();
         $quantidade = $sql_query->num_rows;
 
         // TEST
@@ -61,13 +55,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email_recupera'])) {
 
 
             $tokenize = new Tokenize();
-            $token= $tokenize->token();
-            
-            // test
-            // echo "<br>token: $token";
+            $token = $tokenize->token();
 
-            $sql = "UPDATE users SET token = '$token' WHERE id= '$_SESSION[user_id]'";
-            $sql_query = $conn->query($sql) or die("Falha ao se conectar". $this->conn->error);
+            $stmt_upd = $conn->prepare("UPDATE users SET token = ? WHERE email = ?");
+            $stmt_upd->bind_param('ss', $token, $email_recupera);
+            $stmt_upd->execute();
 
             // cria o link de recuperação
             // $link_recupera = "http://localhost/DEVELOPMENT/HUMOR/SERVER/frontend/public/troca_password.php?tk=" . $token;
@@ -104,16 +96,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email_recupera'])) {
             $mail->SMTPAuth = true;
             
             // Username to use for SMTP authentication - use full email address for gmail
-            $mail->Username = 'prof.belloni@gmail.com';
-            
-            // Password to use for SMTP authentication
-            $mail->Password = 'hbpxppywbzvwlals';
-            
+            $mail->Username = getenv('EMAIL_SENDER');
+
+            // Password to use for SMTP authentication (variável de ambiente EMAIL_PASSWORD)
+            $mail->Password = getenv('EMAIL_PASSWORD');
+
             // Set who the message is to be sent from
-            $mail->setFrom('prof.belloni@gmail.com', 'Contato-Humor');
+            $mail->setFrom(getenv('EMAIL_SENDER'), 'Contato-Humor');
             
             // Set who the message is to be sent to
-            $mail->addAddress('mbelloni@alumni.usp.br', 'Belloni');
+            $mail->addAddress($email_recupera);
             
             // Set the subject line
             $mail->Subject = 'HumorIA - Recuperar Senha';
@@ -144,23 +136,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email_recupera'])) {
             } else {
                 echo '<script>alert("Um link para recuperar a senha foi enviado para seu e-mail."); window.location.href = "./../public/index.php";</script>';
             }
-            
-            // Section 2: IMAP
-            // IMAP commands require the PHP IMAP Extension, found at: https://php.net/manual/en/imap.setup.php
-            function save_mail($mail)
-            {
-                // You can change 'Sent Mail' to any other folder or tag
-                $path = '{imap.gmail.com:993/imap/ssl}[Gmail]/Sent Mail';
-            
-                // Tell your server to open an IMAP connection using the same username and password as you used for SMTP
-                $imapStream = imap_open($path, $mail->Username, $mail->Password);
-            
-                $result = imap_append($imapStream, $path, $mail->getSentMIMEMessage());
-                imap_close($imapStream);
-            
-                return $result;
-            }
-
             
         }else{
             echo "<script>alert('Usuário inexistente')</script>";

@@ -1,7 +1,6 @@
 import soundfile as sf
 from pydub import AudioSegment
 import os
-import urllib.parse
 
 
 def converter_gsm_para_pcm(input_path, output_path):

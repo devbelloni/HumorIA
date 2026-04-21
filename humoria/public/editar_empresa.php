@@ -37,6 +37,7 @@ if($_SESSION['user_superuser']==2){
         $dbConnector = new DatabaseConnector($dsn, $username, $password, $options);
         $empresa = new BDController($dbConnector, "empresas", "id", $id);
 
+        // Altera empresa
         if(isset($_POST['new_razao']) && isset($_POST['new_cnpj'])){
             $updateData = [
                 'razao'=> $_POST['new_razao'],
@@ -228,6 +229,8 @@ if($_SESSION['user_superuser']==2){
                                         <div class="row">
                                             <div class="col-md-12">
 
+                                            <?php //var_dump($everybody)?>
+
                                             <form action="<?php echo 'editar_empresa.php?id=' . $id; ?>" method="post">
                                                 <div class="container">
                                                     <div class="row">
@@ -267,6 +270,26 @@ if($_SESSION['user_superuser']==2){
                                                             <label for="pais" class="form-label">País</label>
                                                             <input required type="text" class="form-control" name="new_pais" value="<?php echo htmlspecialchars($everybody[0]['pais']); ?>">
                                                         </div>
+
+                                                        <!--
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class='form-label' for="pabx">Servidor PABX:</label>
+                                                            <input required class="form-control" type="text" name="pabx"><br>
+                                                        </div>  
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class='form-label' for="pabx_dir">Diretório do Servidor PABX:</label>
+                                                            <input required class="form-control" type="text" name="pabx_dir"><br>
+                                                        </div>  
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class='form-label' for="pabx_user">User do Servidor PABX:</label>
+                                                            <input required class="form-control" type="text" name="pabx_user"><br>
+                                                        </div>  
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class='form-label' for="pabx_senha">Senha do Servidor PABX:</label>
+                                                            <input required class="form-control" type="text" name="pabx_senha"><br>
+                                                        </div> 
+                                                        -->
+
                                                     </div>
                                                     <div class="d-flex justify-content-between">
                                                         <button type="submit" class="btn btn-primary" name="submitBtn">Enviar</button>

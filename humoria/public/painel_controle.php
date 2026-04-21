@@ -1,422 +1,232 @@
-
 <?php  
-
 session_start();
 
+// 1. Trava de Segurança: Verifica se está logado e se é Super Usuário (nível 2)
+if (!isset($_SESSION['user_email'])) {
+    header('location:./index.php');
+    exit;
+}
 
+if ($_SESSION['user_superuser'] != 2) {
+    header('location:./dashboard.php');
+    exit;
+}
 
+// 2. Controle de Timeout (10 minutos)
+$horaAtual = time();
+if (isset($_SESSION['ultima_atividade'])) {
+    $tempoDecorrido = $horaAtual - $_SESSION['ultima_atividade'];
+    if ($tempoDecorrido > 600) {
+        header('location:./logout.php');
+        exit;
+    }
+}
+$_SESSION['ultima_atividade'] = $horaAtual;
+
+// 3. Inicialização e Consultas ao Banco
 require("./../dbm/DatabaseConnector.php");
 require("./../controllers/BDController.php");
+include_once("./../dbm/DBConfig.php");
 
-$horaAtual = time(); // time() retorna a hora atual em segundos desde a Era Unix (1 de Janeiro de 1970 00:00:00 GMT)
-if (!isset($_SESSION['user_email'])==True) {
-  $tempoDecorrido = 0;
-  unset($_SESSION['user_email']);
-  session_write_close();
+$dsn = DBConfig::getDSN();
+$username = DBConfig::getUsername();
+$password = DBConfig::getPassword();
+$options = DBConfig::getOptions();
 
-}else{
-  if (isset($_SESSION)==True) {
-    $tempoDecorrido =  $horaAtual-$_SESSION['ultima_atividade'];
-    if ($tempoDecorrido > 600) { 
-      $tempoDecorrido = 0;
-      header('location:./logout.php');
+$dbConnector = new DatabaseConnector($dsn, $username, $password, $options);
 
-      }    
-  }
+// Busca todos os usuários (Join com empresas)
+$usuariosObj = new BDController($dbConnector, "users", "id_empresa", $_SESSION['empresa_id']);
+$everybody = $usuariosObj->getter_all("empresas");
+
+// Busca todas as empresas
+$pj = new BDController($dbConnector, "empresas", "id", "ALL");
+$jobs = $pj->getter_all_empresas($_SESSION['user_superuser']);
+
+// Lógica de Sentimento (Vader)
+$vader = new BDController($dbConnector, "emotion_vader", "id_empresa", $_SESSION['empresa_id']);
+$emo = $vader->getter_all_vader();
+
+$emotionus = [];
+foreach($emo as $emotions){  
+    $emotionus[] = $emotions["emotion_vader"];
 }
 
-# Verifica se o usuário é superusuário
-if($_SESSION['user_superuser']==2){
-
-    include_once("./../dbm/DBConfig.php");
-
-    $dsn = DBConfig::getDSN();
-    $username = DBConfig::getUsername();
-    $password = DBConfig::getPassword();
-    $options = DBConfig::getOptions();
-    $servername = DBConfig::getServer();
-    $dbname = DBConfig::getBdName();
-
-    $dbConnector = new DatabaseConnector($dsn, $username, $password, $options);
-    $usuarios = new BDController($dbConnector, "users", "id_empresa", $_SESSION['empresa_id']);
-    $everybody = $usuarios->getter_all("empresas");
-
-    
-    $pj = new BDController($dbConnector, "empresas", "id", "ALL");
-    $jobs = $pj->getter_all_empresas($_SESSION['user_superuser']);
-
-
-
-
-    $num_empresas=0;
-    
-    foreach($everybody as $pessoas){
-        $num_empresas=+1;
-    }
-    
-
-    // $files = new BDController($dbConnector, "files", "id_empresa", "");
-    // $arquivos = $files->getter();
-
-    $vader = new BDController($dbConnector, "emotion_vader", "id_empresa", $_SESSION['empresa_id']);
-    $emo = $vader->getter_all_vader();
-
-
-    $emotionus = [];
-
-    foreach($emo as $emotions){  
-        array_push($emotionus, $emotions["emotion_vader"]);
-    }
-
-
-
+// Cálculo de percentuais para o Gráfico
+$jsonArray = json_encode([0, 0, 0]); // Default
+if (!empty($emotionus)) {
     $freq = array_count_values($emotionus);
     $soma_total = array_sum($freq);
-
-    $dados = array(
-        isset($freq['Positivo']) ? ($freq['Positivo'] / $soma_total) * 100 : 0,
-        isset($freq['Neutro']) ? ($freq['Neutro'] / $soma_total) * 100 : 0,
-        isset($freq['Negativo']) ? ($freq['Negativo'] / $soma_total) * 100 : 0
-    );
-    $jsonArray = json_encode(array_values($dados));
-
-    if(isset($_SESSION['empresa_id'])){
-    $display="active";
-    }else{
-    $display="deactive";
-    }
-}
-
-else{
-    header('location:./dashboard.php');
+    
+    $dados = [
+        isset($freq['Negativo']) ? round(($freq['Negativo'] / $soma_total) * 100, 2) : 0,
+        isset($freq['Neutro'])   ? round(($freq['Neutro'] / $soma_total) * 100, 2) : 0,
+        isset($freq['Positivo']) ? round(($freq['Positivo'] / $soma_total) * 100, 2) : 0
+    ];
+    $jsonArray = json_encode($dados);
 }
 ?>
 
-
-
 <!DOCTYPE html>
 <html lang="pt_br">
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Dashboard - SB Admin</title>
-        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-        <link href="css/styles.css" rel="stylesheet" />
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    </head>
-    <body class="sb-nav-fixed">
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-            <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3" href="dashboard.php">Humor AI</a>
-            <!-- Sidebar Toggle-->
-            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
-            <!-- Navbar Search-->
-            <!-- <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
-                <div class="input-group">
-                    <input required class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Painel de Controle - Humor AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+    <link href="css/styles.css" rel="stylesheet" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+</head>
+<body class="sb-nav-fixed">
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand ps-3" href="dashboard.php">Humor AI</a>
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        <ul class="navbar-nav ms-auto me-3 me-lg-4">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-user fa-fw"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="logout.php">Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <div class="sb-sidenav-menu-heading">Principal</div>
+                        <a class="nav-link" href="dashboard.php">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div> Dashboard
+                        </a>
+                        <a class="nav-link" href="detail_cloudwords.php">
+                            <div class="sb-nav-link-icon"><i class="fas fa-cloud"></i></div> Nuvem de palavras
+                        </a>
+                        <div class="sb-sidenav-menu-heading">Administrador</div>
+                        <a class="nav-link" href="detail_user.php">
+                            <div class="sb-nav-link-icon"><i class="fas fa-gamepad"></i></div> Usuários
+                        </a>
+                        <a class="nav-link active" href="painel_controle.php">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div> Painel de Controle
+                        </a>
+                    </div>
                 </div>
-            </form> -->
-            <!-- Navbar-->
-            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-<!--                         <li><hr class="dropdown-divider" /></li>
- -->                        <li><a class="dropdown-item" href="logout.php">Logout</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        <div id="layoutSidenav">
-            <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
-                    <div class="sb-sidenav-menu">
-                        <div class="nav">
-                            <div class="sb-sidenav-menu-heading">Principal</div>
-                            <a class="nav-link" href="dashboard.php">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Dashboard
-                            </a>
-                            <a class="nav-link" href="detail_cloudwords.php">
-                                <div class="sb-nav-link-icon"><i class="fas fa-cloud"></i></div>
-                                Nuvem de palavras
-                            </a>
-                            <a class="nav-link" href="form_contato.php">
-                                <div class="sb-nav-link-icon"><i class="fas fa-envelope"></i></div>
-                                Contato
-                            </a>
-                            <div class="sb-sidenav-menu-heading">Admnistrador</div>
-                            <a class="nav-link" href="detail_user.php">
-                                <div class="sb-nav-link-icon"><i class="fas fa-gamepad"></i></div>
-                                Administrador
-                            </a>
-                          
-                            <div class="sb-sidenav-menu-heading"></div>
-                            <a class="nav-link" href="painel_controle.php">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                Painel de Controle
-                            </a>
-                            <!-- <a class="nav-link" href="tables.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                                Tables
-                            </a> -->
-                        </div>
-                    </div>
-                    <div class="sb-sidenav-footer">
-                        <div class="small">Bem-vindo</div>
-                        <?php echo $_SESSION['user_nome'] . ' ' . $_SESSION['user_sobrenome']; ?>
-                    </div>
-                </nav>
-            </div>
-            <div id="layoutSidenav_content">
-                <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Painel de Controle</h1>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">Super Usuário</li>
-                        </ol>
-                        <div class="row">
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-primary text-white mb-4">
-                                    <div class="card-body">Usuários Cadastrados no Sistema</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <?php 
-                                            $num_users = 0;
-                                            foreach ($everybody as $user) {
-                                                $num_users++;
-                                            }
-                                            echo '<p class="medium text-white">' . $num_users . ' Usuários</p>';
-                                            
-                                        ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- <div class="col-xl-3 col-md-6">
-                                <div class="card bg-warning text-white mb-4">
-                                    <div class="card-body">Warning Card</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-success text-white mb-4">
-                                    <div class="card-body">Success Card</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-danger text-white mb-4">
-                                    <div class="card-body">Danger Card</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div> -->
-                        </div>
-                        <div class="row">
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-area me-1"></i>
-                                        Cadastro de novos clientes
-                                    </div>
-                                    <div class="card-body">
-                                        <a href="cadastro.php"><button>Cadastrar Usuário</button></a>
-                                        <a href="cadastro_empresa.php"><button>Cadastrar Empresa</button></a>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        Bar Chart Example
-                                    </div>
-
-                                        aqui vai o conteudo
-
-                                </div>
-                            </div> -->
-                        </div>
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-table me-1"></i>
-                                Controle de usuários
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-dark table-hover">
-
-                                    <thead>
-                                        <tr>
-                                          <th scope="col">Id</th>
-                                          <th scope="col">Empresa</th>
-                                          <th scope="col">Nome</th>
-                                          <th scope="col">Sobrenome</th>
-                                          <th scope="col"></th>
-                                          <th scope="col"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>            
-                                        <?php  
-                                          foreach($everybody as $usuario){
-                                            echo '<tr>';
-                                            echo '<th scope="row">' . $usuario["user_id"] . '</th>';
-                                            echo '<td>' . $usuario["razao"] . '</td>';
-                                            echo '<td>' . $usuario["user_nome"] . '</td>';
-                                            echo '<td>' . $usuario["user_sobrenome"] . '</td>';
-                                            echo '<td>';
-                                            echo '<a href="editar_usuario.php?id=' . $usuario["user_id"] . '">';
-                                            echo '<button class="btn active btn-outline-warning">Editar</button>';
-                                            echo '</a>';
-                                            echo '</td>';    
-                                            echo '<td>';    
-                                            echo '<a href="deletar_usuario.php?id=' . $usuario["user_id"] . '&nome=' . $usuario["user_nome"] . '&sobrenome=' . $usuario["user_sobrenome"] . '" ';
-                                            echo 'onclick="return confirm(\'Tem certeza que deseja deletar o usuário ' . $usuario["user_nome"] . ' ' . $usuario["user_sobrenome"] . '?\');">';
-                                            echo '<button class="btn active btn-outline-danger">Deletar</button>';
-                                            echo '</a>';
-                                            echo '</td>';
-                                            echo '</tr>';
-                                          }
-                                        ?>
-                                      </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-table me-1"></i>
-                                Controle de empresas
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-dark table-hover">
-
-                                    <thead>
-                                        <tr>
-                                          <th scope="col">Id</th>
-                                          <th scope="col">Empresa</th>
-                                          <th scope="col">CNPJ</th>
-                                          <th scope="col"></th>
-                                          <th scope="col"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>            
-                                        <?php
-                                        // Initialize an array to store seen empresa_ids
-                                        $seen_empresas = array();
-
-                                        foreach($jobs as $empresa){
-                                        // Check if this empresa_id has already been displayed
-                                        if (!in_array($empresa["id"], $seen_empresas)) {
-                                            // Add this empresa_id to the seen array
-                                            $seen_empresas[] = $empresa["id"];
-
-                                            // Display the table row
-                                            echo '<tr>';
-                                            echo '<th scope="row">' . $empresa["id"] . '</th>';
-                                            echo '<td>' . $empresa["razao"] . '</td>';
-                                            echo '<td>' . $empresa["cnpj"] . '</td>';
-                                            echo '<td>';
-                                            echo '<a href="editar_empresa.php?id=' . $empresa["id"] . '">';
-                                            echo '<button class="btn active btn-outline-warning">Editar</button>';
-                                            echo '</a>';
-                                            echo '</td>';    
-                                            echo '<td>';    
-                                            echo '<a href="deletar_empresa.php?id=' . $empresa["id"] . '&razao=' . $empresa["razao"] . '&CNPJ=' . $empresa["cnpj"] . '" ';
-                                            echo 'onclick="return confirm(\'Tem certeza que deseja deletar a empresa ' . $empresa["razao"] . ', CNPJ: ' . $empresa["cnpj"] . '?\');">';
-                                            echo '<button class="btn active btn-outline-danger">Deletar</button>';
-                                            echo '</a>';
-                                            echo '</td>';
-                                            echo '</tr>';
-                                            }
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
-                    
-                </main>
-                <footer class="py-4 bg-light mt-auto">
-                    <div class="container-fluid px-4">
-                        <div class="d-flex align-items-center justify-content-between small">
-                            <div class="text-muted">Copyright &copy; Your Website 2023</div>
-                            <div>
-                                <a href="#">Privacy Policy</a>
-                                &middot;
-                                <a href="#">Terms &amp; Conditions</a>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
-            </div>
+                <div class="sb-sidenav-footer">
+                    <div class="small">Bem-vindo:</div>
+                    <?php echo $_SESSION['user_nome'] . ' ' . $_SESSION['user_sobrenome']; ?>
+                </div>
+            </nav>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-        <script src="js/scripts.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-        <script src="assets/demo/chart-area-demo.js"></script>
-        <script>
-            // Set new default font family and font color to mimic Bootstrap's default styling
-Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-Chart.defaults.global.defaultFontColor = '#292b2c';
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4">Painel de Controle</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active">Gestão Global do Sistema</li>
+                    </ol>
+                    
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card bg-primary text-white mb-4">
+                                <div class="card-body">Total de Usuários: <?php echo count($everybody); ?></div>
+                            </div>
+                        </div>
+                    </div>
 
-// Bar Chart Example
-const jsonArray = <?php echo $jsonArray; ?>;
+                    <div class="card mb-4">
+                        <div class="card-header"><i class="fas fa-table me-1"></i> Usuários Cadastrados</div>
+                        <div class="card-body">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Empresa</th>
+                                        <th>Nome</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($everybody as $u): ?>
+                                        <tr>
+                                            <td><?= $u["user_id"] ?></td>
+                                            <td><?= $u["razao"] ?></td>
+                                            <td><?= $u["user_nome"] . " " . $u["user_sobrenome"] ?></td>
+                                            <td>
+                                                <a href="editar_usuario.php?id=<?= $u["user_id"] ?>" class="btn btn-sm btn-outline-warning">Editar</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-var ctx = document.getElementById("myBarChart");
-var myLineChart = new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: ["Negativo", "Neutro", "Positivo"],
-    datasets: [{
-      label: "Revenue",
-      backgroundColor: ['red', 'yellow', 'green'],
-      borderColor: "rgba(2,117,216,1)",
-      data: jsonArray,
-    }],
-  },
-  options: {
-    scales: {
-      xAxes: [{
-        time: {
-          unit: 'percentiles'
-        },
-        gridLines: {
-          display: false
-        },
-        ticks: {
-          maxTicksLimit: 6
-        }
-      }],
-      yAxes: [{
-        ticks: {
-          min: 0,
-          max: 100,
-          maxTicksLimit: 5
-        },
-        gridLines: {
-          display: true
-        }
-      }],
-    },
-    legend: {
-      display: false
-    }
-  }
-});
-        </script>
-        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
-        <script src="js/datatables-simple-demo.js"></script>
-    </body>
+                    <div class="card mb-4">
+                        <div class="card-header"><i class="fas fa-building me-1"></i> Empresas</div>
+                        <div class="card-body">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Razão Social</th>
+                                        <th>CNPJ</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php 
+                                    $seen = [];
+                                    foreach($jobs as $e): 
+                                        if(!in_array($e['id'], $seen)): 
+                                            $seen[] = $e['id'];
+                                    ?>
+                                        <tr>
+                                            <td><?= $e["id"] ?></td>
+                                            <td><?= $e["razao"] ?></td>
+                                            <td><?= $e["cnpj"] ?></td>
+                                            <td>
+                                                <a href="editar_empresa.php?id=<?= $e["id"] ?>" class="btn btn-sm btn-outline-warning">Editar</a>
+                                            </td>
+                                        </tr>
+                                    <?php endif; endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header"><i class="fas fa-chart-bar me-1"></i> Humor Global (Vader)</div>
+                        <div class="card-body">
+                            <canvas id="myBarChart" width="100%" height="40"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script>
+        const sentimentData = <?php echo $jsonArray; ?>;
+        var ctx = document.getElementById("myBarChart");
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Negativo", "Neutro", "Positivo"],
+                datasets: [{
+                    backgroundColor: ['#dc3545', '#ffc107', '#198754'],
+                    data: sentimentData,
+                }],
+            },
+            options: {
+                scales: {
+                    yAxes: [{ ticks: { min: 0, max: 100 } }]
+                },
+                legend: { display: false }
+            }
+        });
+    </script>
+</body>
 </html>

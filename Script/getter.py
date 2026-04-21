@@ -17,14 +17,10 @@ class le_no_banco:
                 # Cria um cursor
                 cursor = conn.cursor()
 
-                # Query
-                query = f"SELECT * FROM palavras WHERE data BETWEEN '{self.data_inicio}' AND '{self.data_final}' AND id_empresa = '{self.empresa_id}'"
+                # Query com parâmetros para evitar SQL Injection
+                query = "SELECT * FROM palavras WHERE data BETWEEN %s AND %s AND id_empresa = %s"
 
-
-                print("Query:", query)
-
-                # Executa a query com parâmetros
-                cursor.execute(query)
+                cursor.execute(query, (self.data_inicio, self.data_final, self.empresa_id))
 
                 # Obtém os resultados da consulta
                 results = cursor.fetchall()

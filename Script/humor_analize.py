@@ -3,9 +3,12 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from collections import Counter
 import nltk
-nltk.download('stopwords')
-nltk.download('vader_lexicon')
-nltk.download('punkt') 
+import os
+
+if not os.environ.get('NLTK_DATA_DOWNLOADED'):
+    nltk.download('stopwords', quiet=True)
+    nltk.download('vader_lexicon', quiet=True)
+    nltk.download('punkt', quiet=True)
  
 class humor_analize():
 
@@ -59,7 +62,7 @@ class humor_analize():
             # print(f"Palavras-chave da conversa:{palavras_chave}")
             return ({'palavras_principais': palavras_chave,'emoção': Sentimento})
         
-        except:
+        except Exception:
             print("Transcrição está vazia.")
 
         # for palavra, frequencia in palavras_chave:

@@ -1,17 +1,15 @@
 import mysql.connector
+import os
 
 class connector:
     def connect(self):
         try:
             conn = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password="2aGHQPcW2#wxrC@e",
-                database="humorai"
+                host=os.environ.get("DB_HOST", "localhost"),
+                user=os.environ.get("DB_USER", "root"),
+                password=os.environ["DB_PASSWORD"],
+                database=os.environ.get("DB_NAME", "humorai")
             )
-            # password="2aGHQPcW2#wxrC@e"
-
-            print("Conexão bem-sucedida!")
             return conn
         except mysql.connector.Error as e:
             print(f"Erro ao conectar ao banco de dados: {e}")

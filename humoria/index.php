@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Splash Screen</title>
+  <title>Humor IA</title>
+  <link rel="icon" href="./../static/img/grd_infinity.png" type="image/png">
   <style>
     body, html {
       margin: 0;

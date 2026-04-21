@@ -227,7 +227,9 @@ if (!isset($_SESSION['user_email'])) {
                                             <div class="card-body">
                                                 <h3 text-right></h3>
                                                 <form action="./editar_usuario.php?id=<?php echo $result[0]['id'] ?>" style="text-decoration: none;" method="post">
-                                                    <label for="new_name">Nome</label><br>
+                                                    <label for="new_superuser">0 = Usuário, 1 = Administrador, 2 = Superuser</label><br>
+                                                    <input required type="text" value="<?php echo htmlspecialchars($result[0]['superuser']) ?>" name="new_superuser">
+                                                    </input><br><label for="new_name">Nome</label><br>
                                                     <input required type="text" value="<?php echo htmlspecialchars($result[0]['nome']) ?>" name="new_name"></input><br>
                                                     <label for="new_sobrenome">Sobrenome</label><br>
                                                     <input required type="text" value="<?php echo htmlspecialchars($result[0]['sobrenome']) ?>" name="new_sobrenome"></input><br>

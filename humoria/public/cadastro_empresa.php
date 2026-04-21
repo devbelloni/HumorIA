@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_email'])==True) {
 }else{
   if (isset($_SESSION)==True) {
     $tempoDecorrido =  $horaAtual-$_SESSION['ultima_atividade'];
-    if ($tempoDecorrido > 600) { 
+    if ($tempoDecorrido > 6000) { 
       $tempoDecorrido = 0;
       header('location:./logout.php');
 
@@ -23,7 +23,7 @@ if (!isset($_SESSION['user_email'])==True) {
 }
 
 if($_SESSION['user_superuser']==2){
-
+    $id = 1;
     include_once("./../dbm/DBConfig.php");
 
     $dsn = DBConfig::getDSN();
@@ -33,10 +33,13 @@ if($_SESSION['user_superuser']==2){
     $servername = DBConfig::getServer();
     $dbname = DBConfig::getBdName();
 
+
     $dbConnector = new DatabaseConnector($dsn, $username, $password, $options);
     $construtor = new BDController($dbConnector, "empresas", "id", $id);
 
     $empresas = $construtor->getter_all_empresas($_SESSION['user_superuser']);
+
+    
 }
         
 
@@ -174,9 +177,25 @@ if($_SESSION['user_superuser']==2){
                                                             <div class="col-md-6 mb-3">
                                                                 <label class='form-label' for="cep">CEP:</label>
                                                                 <input required class="form-control" type="text" name="cep"><br>
+                                                            </div>                                                             
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class='form-label' for="pabx">Servidor PABX:</label>
+                                                                <input required class="form-control" type="text" name="pabx"><br>
+                                                            </div>  
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class='form-label' for="pabx_dir">Diretório do Servidor PABX:</label>
+                                                                <input required class="form-control" type="text" name="pabx_dir"><br>
+                                                            </div>  
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class='form-label' for="pabx_user">User do Servidor PABX:</label>
+                                                                <input required class="form-control" type="text" name="pabx_user"><br>
+                                                            </div>  
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class='form-label' for="pabx_senha">Senha do Servidor PABX:</label>
+                                                                <input required class="form-control" type="text" name="pabx_senha"><br>
                                                             </div>  
                                                             <div class="col-md-6 mb-3">                  
-                                                                <button class='btn btn-primary mt-2' type="submit">Enviar</button>
+                                                                <button class='btn btn-primary mt-2' type="submit">Cadastrar</button>
                                                                 <a href="./painel_controle.php"><button type="button" class="btn btn-secondary mt-2">Retornar</button></a>
                                                             </div>
                                                         </div>

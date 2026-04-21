@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 class BDController {
     private $dbConnector;
@@ -164,21 +163,17 @@ class BDController {
             $data2 = date('Y-m-d');
         }
 
-        // busca os files
-        // $sql = "SELECT * FROM files, emotion_vader, emotion_gemini WHERE id_empresa = " . $this->value . " AND files.data_criacao BETWEEN '" . $data1 . "' AND '" . $data2 . "'";
-        $sql = "SELECT * FROM files JOIN emotion_vader ON files.id = emotion_vader.id_file JOIN emotion_gemini ON files.id = emotion_gemini.id_file WHERE id_empresa = " . $this->value . " AND files.data BETWEEN '" . $data1 . "' AND '" . $data2 . "' ORDER BY files.data DESC";
+        $sql = "SELECT * FROM files JOIN emotion_vader ON files.id = emotion_vader.id_file JOIN emotion_gemini ON files.id = emotion_gemini.id_file WHERE id_empresa = ? AND files.data BETWEEN ? AND ? ORDER BY files.data DESC";
 
+        $stmt = $this->dbConnector->prepare($sql);
 
-        $stmt= $this->dbConnector->prepare($sql);
-        
         if ($stmt === false) {
             throw new Exception('Prepare failed: ' . htmlspecialchars($this->dbConnector->error));
         }
-              
-        try {       
-            $stmt->execute();
-            $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
+        try {
+            $stmt->execute([$this->value, $data1, $data2]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             throw new Exception("Select failed: " . $e->getMessage());
         }
@@ -227,26 +222,19 @@ class BDController {
         // echo $data1;
         // echo $data2;    
     
-        // busca os files
-        // $sql = "SELECT * FROM files, emotion_vader, emotion_gemini WHERE id_empresa = " . $this->value . " AND files.data_criacao BETWEEN '" . $data1 . "' AND '" . $data2 . "'";
-        $sql = "SELECT * FROM files JOIN words ON files.id = words.id_file WHERE id_empresa = " . $this->value . " AND files.data BETWEEN '" . $data1 . "' AND '" . $data2 . "'";
-        $stmt= $this->dbConnector->prepare($sql);
+        $sql = "SELECT * FROM files JOIN words ON files.id = words.id_file WHERE id_empresa = ? AND files.data BETWEEN ? AND ?";
+        $stmt = $this->dbConnector->prepare($sql);
 
         if ($stmt === false) {
             throw new Exception('Prepare failed: ' . htmlspecialchars($this->dbConnector->error));
         }
-              
-        try {       
-            $stmt->execute();
-            $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-            // echo $sql;
 
-
-        
+        try {
+            $stmt->execute([$this->value, $data1, $data2]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             throw new Exception("Select failed: " . $e->getMessage());
         }
-
 
         return $result;
 
@@ -276,33 +264,24 @@ class BDController {
 
     public function update($data) {
         $sets = [];
+        $params = [];
         foreach ($data as $key => $value) {
-            $sets[] = "{$key} = '{$value}'";
+            $sets[] = "{$key} = ?";
+            $params[] = $value;
         }
-    
-        // test
-        // var_dump($data);
-
+        $params[] = $this->value;
 
         $setString = implode(", ", $sets);
-
-        $sql = "UPDATE {$this->tableName} SET {$setString} WHERE id= '". $this->value . "'";
-
-        // test
-        // echo $sql;
+        $sql = "UPDATE {$this->tableName} SET {$setString} WHERE id = ?";
 
         $stmt = $this->dbConnector->prepare($sql);
-
-        // test
-        // var_dump($stmt);
 
         if ($stmt === false) {
             throw new Exception('Prepare failed: ' . htmlspecialchars($this->dbConnector->error));
         }
 
-       
         try {
-            $stmt->execute();
+            $stmt->execute($params);
             return $stmt->rowCount();
         } catch (Exception $e) {
             throw new Exception("Update failed: " . $e->getMessage());
@@ -313,8 +292,6 @@ class BDController {
         $sql = "DELETE FROM {$this->tableName} WHERE {$this->column} = :value";
         $stmt = $this->dbConnector->prepare($sql);
 
-        echo $sql;
-        echo $this->value;
         if ($stmt === false) {
             throw new Exception('Prepare failed: ' . htmlspecialchars($this->dbConnector->error));
         }
@@ -330,22 +307,7 @@ class BDController {
     }
 
     public function delete_empresas() {
-        $sql = "DELETE FROM {$this->tableName} WHERE {$this->column} = :value";
-        $stmt = $this->dbConnector->prepare($sql);
-
-        echo $sql;
-        if ($stmt === false) {
-            throw new Exception('Prepare failed: ' . htmlspecialchars($this->dbConnector->error));
-        }
-
-        $stmt->bindParam(':value', $this->value, PDO::PARAM_STR);
-
-        try {
-            $stmt->execute();
-            return $stmt->rowCount();
-        } catch (Exception $e) {
-            throw new Exception("Delete failed: " . $e->getMessage());
-        }
+        return $this->delete();
     }
 }
 ?>

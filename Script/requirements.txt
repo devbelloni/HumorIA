@@ -11,3 +11,8 @@ mysqlclient
 djangorestframework
 djangorestframework-simplejwt
 wordcloud
+mysql-connector-python
+argparse
+langchain 
+langchain-community 
+langchain-ollama 

@@ -17,12 +17,10 @@ class le_no_banco:
                 # Cria um cursor
                 cursor = conn.cursor()
 
-                # Query
-                query = f"SELECT * FROM {self.tabela} WHERE {self.parametro} = '{self.valor}'"
-                print("Query:", query)
+                # Query com parâmetro para evitar SQL Injection
+                query = f"SELECT * FROM {self.tabela} WHERE {self.parametro} = %s"
 
-                # Executa a query com parâmetros
-                cursor.execute(query)
+                cursor.execute(query, (self.valor,))
 
                 # Obtém os resultados da consulta
                 results = cursor.fetchall()

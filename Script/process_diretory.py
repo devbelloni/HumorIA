@@ -5,7 +5,6 @@ from transcreveVozRecognize import Transcrever
 from grava_no_banco import grava_no_banco
 from get_no_banco import le_no_banco
 from connector import connector
-import traceback
 import json
 import os
 import re
@@ -24,7 +23,11 @@ class process_diretory:
         directory_path = f"/var/www/humoria/recordings (3)/{self.id_empresa}"
         # directory_path = f"/media/belloni/Arquivos/DEVELOPMENT/HUMOR/SERVER/frontend/recordings (3)/{self.id_empresa}"
 
-
+        # Obtém a data e hora atual
+        data_hora_atual = datetime.now()
+        data_formatada = data_hora_atual.strftime("%Y-%m-%d %H:%M:%S")
+        print(data_formatada)  
+        
         print(directory_path)
         try:
             # verifica se existe o diretório
@@ -34,9 +37,10 @@ class process_diretory:
 
             # identifica o diretório do ramal
             for dirs in os.listdir(directory_path):
-                # print(dirs)
+                print(dirs)
                 for file in os.listdir(f'{directory_path}/{dirs}'):
                     file_path = os.path.join(directory_path, dirs, file)
+                    # print(file_path)
 
                     # conecta no banco
                     conecta = connector()
@@ -44,34 +48,32 @@ class process_diretory:
 
                     try:
 
-                        # Verifica se o arquivo está no banco de dados    
+                        # Verifica se o arquivo está no banco de dados
                         cursor=conn.cursor()
-                        query = f"SELECT * FROM files WHERE filename = '{file}'"
+                        query = "SELECT * FROM files WHERE filename = %s"
 
-                        # print(f'Query: {query}')
-
-                        cursor.execute(query)
+                        cursor.execute(query, (file,))
                         arquivo = cursor.fetchall()
                         # print(f'Arquivo: {arquivo}')
+                        print(arquivo)
 
                         # condicional se o arquivo existe
                         if arquivo:
-                            print('Arquivo já está no banco de dados')
+                            print(f'Arquivo {file} já está no banco de dados')
                             continue
                         else:
-
+                            # print('Inicia parte que contacta as IAs.')
                             # CONVOCA AS IAS!!!!!
-
                             # tenta convocar o transcritor
                             try:
-                                print(f"file_path: {file_path}")
+                                # print(f"Enviando: {file_path} para o transcritor.")
                                 transcritor = Transcrever(file_path)
                                 transcricao = transcritor.transcrever_wav()
 
-                                print (f'Transcricao: {transcricao}')
+                                # print (f'Transcricao: {transcricao}')
 
 
-                                print(f"id_empresa: {self.id_empresa}")
+                                # print(f"id_empresa: {self.id_empresa}")
 
                                 # SEPARANDO A DATA
 
@@ -88,7 +90,7 @@ class process_diretory:
                                         data_formatada = datetime.strptime(data_str[0:8], '%Y%m%d').strftime('%Y-%m-%d')
 
 
-                                if self.id_empresa>"1":
+                                if int(self.id_empresa) > 1:
                                     print(f"id_empresa: {self.id_empresa}")
 
 
@@ -117,8 +119,6 @@ class process_diretory:
 
                                 if not transcricao:
                                     print('Transcrição está vazia')
-                                    with open('saida.txt','w') as f:
-                                        f.write(f'Transcrição está vazia\n')
 
                                 else:
 
@@ -127,61 +127,36 @@ class process_diretory:
                                     humor = humor_analize(transcricao)
                                     humor_basics=humor.humor_core()
 
-                                    print(f'Humor Basic: {humor_basics}')
+                                    print(f'Humor VADER IA: {humor_basics}')
 
 
 
 
                                     # HUMOR COMPLEX
-                                    humor_gemini = ConsomeGemini(f"Você deve analisar o texto e criar um json com o índice palavras principais e emoção, somente com as 5 palavras principais no máximo e somente qual a emoção está transmitindo o texto todo sem muita explicação: {transcricao}. Use palavras_principais e emoção como índices do json!")
+                                    humor_gemini = ConsomeGemini(transcricao)
 
                                     humor_complex = humor_gemini.GeminiAPI()
-                                    print(humor_complex)
+                                    print(f'Humor INFINITY IA: {humor_complex}')
 
                                     try:
-
-                                        # Acessa o texto dentro do objeto Part/
-                                        part = humor_complex._result.candidates[0].content.parts[0]
-                                        json_data = part.text
-
-                                        # Remove o prefixo "```json" e o sufixo "```"
-                                        json_data = json_data.replace("```json", "").replace("```", "").strip()
-
-                                        # Analisa o JSON
-                                        data = json.loads(json_data)
-
-                                        # Acessa as palavras principais
-                                        palavras_principais = data["palavras_principais"]
-                                        emos = data["emoção"]
-                                        
-                                        words = []
-                                        # Exibe as palavras principais
-                                        for palavra in palavras_principais:
-                                            words.append(palavra)
-                                        
-                                        print(f'Palavras Principais: {words}')
-
-                                        # Exibe as emoções
-                                        print(f'"Emoções: {emos}')
+                                        palavras_gemini = humor_complex.get("palavras_principais", [])
+                                        emos = humor_complex.get("emoção", "")
+                                        print(f'Palavras Principais: {palavras_gemini}')
+                                        print(f'Emoções: {emos}')
 
                                     except Exception as e:
-                                        error_message = f"Gemini respodeu erro: {str(e)}"
-                                        print(error_message)
+                                        print(f"Erro ao processar resposta da IA: {str(e)}")
                                         print(traceback.format_exc())
-                                        words=[]
                                         emos=''
 
 
 
                                     # WORDS
-                                    # Extrai apenas as palavras principais
+                                    # Extrai apenas as palavras principais do VADER
                                     palavras_principais = [palavra[0] for palavra in humor_basics['palavras_principais']]
-                                    tabela='files'
-                                    parameter=('filename')
-                                    valores=(file)
-                                    # Le o file
-                                    leitor = le_no_banco(tabela, parameter, valores)
-                                    answer_files=leitor.getter()
+                                    # Le o id do file recem gravado
+                                    leitor = le_no_banco('files', 'filename', file)
+                                    answer_files = leitor.getter()
                                     print(answer_files)
                                     # Gravando na tabela Words
                                     tabela_words='words'
@@ -208,15 +183,8 @@ class process_diretory:
                                     grava.gravar()
 
 
-                                # Quando não encontrar mais arquivos no diretório, pula o for
-                                if not os.path.isfile(file_path):
-                                    continue  
 
 
-
-                                print(transcricao)
-
-                            
                             except Exception as e:
                                 error_message = f"Error: {str(e)}"
                                 print(error_message)
